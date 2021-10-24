@@ -1,25 +1,46 @@
 import { Typography, TextField } from "@material-ui/core";
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import {useDispatch} from 'react-redux'
-import {createUser} from '../../actions/users'
+import { useSelector } from "react-redux";
+import {createUser, updateUser} from '../../actions/users'
 
-const Form = () => {
+const Form = ({currentId, setCurrentId}) => {
     const [userData, setUserData] = useState({
         firstName: '',
         lastName: '',
         email:'',
         age:''
     })
+    const user = useSelector((state) => currentId ? state.users.find((u)=>u._id===currentId) : null)
+
     const dispatch = useDispatch()
 
     const handleSubmit = (e) => {
         e.preventDefault()
-        dispatch(createUser(userData))
+        if(currentId){
+            dispatch(updateUser(currentId, userData))
+        }else{
+            dispatch(createUser(userData))
+        }
+
+        clear()
     }
 
     const clear = () => {
-        
+        setCurrentId(null)
+        setUserData({
+            firstName: '',
+            lastName: '',
+            email:'',
+            age:''
+        })
     }
+
+    useEffect(() => {
+        if(user){
+            setUserData(user)
+        }
+    }, [user])
 
     return (
         <>
@@ -28,7 +49,7 @@ const Form = () => {
                 noValidate
                 onSubmit={handleSubmit}
             >
-                <Typography>Create User</Typography>
+                <Typography>{currentId?'Edit':'Create'} User</Typography>
                 <TextField
                     name="firstName"
                     variant="outlined"
@@ -57,7 +78,7 @@ const Form = () => {
                     value={userData.age}
                     onChange={(e)=>{setUserData({...userData, age: e.target.value})}}
                 /><br/><br/>
-                <button type="submit">Submit</button><br/><br/>
+                <button type="submit">{currentId?'Update':'Submit'}</button><br/><br/>
                 <button type="button" onClick={clear}>Clear</button>
             </form>
         </>
